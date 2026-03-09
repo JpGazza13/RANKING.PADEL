@@ -49,7 +49,8 @@ async function cargarJugadoresDesdeGitHub() {
 
         console.log("Jugadores cargados desde GitHub.");
         inicializarClasificacion();
-        renderSeleccionJugadores(); // para el grupo que uses por defecto (ej: G1)
+        renderSeleccionJugadores(); // por defecto, usamos G1
+        renderClasificacion();
     } catch (error) {
         console.error("Error cargando desde GitHub:", error);
         alert("Error cargando jugadores desde GitHub.");
@@ -102,12 +103,12 @@ function guardarClasificacion() {
 }
 
 // =========================
-// SELECCIÓN DE JUGADORES (JUEGA / DOBLA)
+– SELECCIÓN DE JUGADORES (JUEGA / DOBLA)
 // =========================
 
-// Aquí puedes elegir de qué grupo tiras (ejemplo: G1)
+// Por simplicidad, usamos siempre G1.
+// Si luego quieres selector de grupo, lo añadimos.
 function obtenerJugadoresGrupoActual() {
-    // Por simplicidad, usamos G1. Si quieres, puedes añadir selector de grupo.
     return jugadoresG1;
 }
 
@@ -193,11 +194,9 @@ function actualizarListasSeleccion() {
 // GENERACIÓN DE PARTIDO (4 JUGADORES + DOBLADOR SI HACE FALTA)
 // =========================
 function generarPartido() {
-    // Necesitamos 4 jugadores para un partido
     let base = [...jugadoresQueJuegan];
 
     if (base.length < 4) {
-        // Tiramos de los disponibles para doblar
         const faltan = 4 - base.length;
         const candidatos = jugadoresDisponiblesParaDoblar.filter(n => !base.includes(n));
         if (candidatos.length < faltan) {
@@ -212,14 +211,10 @@ function generarPartido() {
         return;
     }
 
-    // Tomamos los 4 primeros
     const [A, B, C, D] = base.slice(0, 4);
 
-    // Determinar quién dobla realmente (solo si alguno de estos está en la lista de DOBLA
-    // y si ha sido necesario usarlo para completar)
+    // Doblador REAL: solo si hemos tenido que usar alguno de DOBLA
     let dobladorReal = null;
-    // Regla simple: si para llegar a 4 hemos usado alguno de los "DOBLA", ese es dobladorReal.
-    // Para simplificar, si hay varios, cogemos el primero que esté en jugadoresDisponiblesParaDoblar.
     for (const nombre of base) {
         if (jugadoresDisponiblesParaDoblar.includes(nombre) && !jugadoresQueJuegan.includes(nombre)) {
             dobladorReal = nombre;
@@ -246,7 +241,6 @@ function renderResultadosPartido() {
     const tabla = document.createElement("table");
     tabla.className = "tabla-resultados";
 
-    // Cabecera
     const thead = document.createElement("thead");
     const trh = document.createElement("tr");
     ["Set", "Pareja Izq", "Pareja Dcha", "Juegos Izq", "Juegos Dcha"].forEach(txt => {
@@ -259,13 +253,8 @@ function renderResultadosPartido() {
 
     const tbody = document.createElement("tbody");
 
-    // Set 1: A+B vs C+D
     tbody.appendChild(crearFilaSet(1, `${jugA} + ${jugB}`, `${jugC} + ${jugD}`, "set1_izq", "set1_dcha"));
-
-    // Set 2: A+C vs B+D
     tbody.appendChild(crearFilaSet(2, `${jugA} + ${jugC}`, `${jugB} + ${jugD}`, "set2_izq", "set2_dcha"));
-
-    // Set 3: A+D vs B+C
     tbody.appendChild(crearFilaSet(3, `${jugA} + ${jugD}`, `${jugB} + ${jugC}`, "set3_izq", "set3_dcha"));
 
     tabla.appendChild(tbody);
@@ -317,7 +306,6 @@ function guardarResultados() {
 
     const { jugA, jugB, jugC, jugD, dobladorReal } = partidoActual;
 
-    // Leemos los 3 sets
     const sets = [
         leerSet("set1_izq", "set1_dcha"),
         leerSet("set2_izq", "set2_dcha"),
@@ -329,14 +317,12 @@ function guardarResultados() {
         return;
     }
 
-    // Estructura de parejas por set
     const setsParejas = [
-        { izq: [jugA, jugB], dcha: [jugC, jugD] }, // Set 1
-        { izq: [jugA, jugC], dcha: [jugB, jugD] }, // Set 2
-        { izq: [jugA, jugD], dcha: [jugB, jugC] }  // Set 3
+        { izq: [jugA, jugB], dcha: [jugC, jugD] },
+        { izq: [jugA, jugC], dcha: [jugB, jugD] },
+        { izq: [jugA, jugD], dcha: [jugB, jugC] }
     ];
 
-    // Inicializar en clasificación si falta alguien
     [jugA, jugB, jugC, jugD].forEach(nombre => {
         if (!clasificacion[nombre]) {
             clasificacion[nombre] = {
@@ -348,7 +334,6 @@ function guardarResultados() {
         }
     });
 
-    // Recorremos los 3 sets y aplicamos tu sistema
     sets.forEach((set, idx) => {
         const { juegosIzq, juegosDcha } = set;
         const { izq, dcha } = setsParejas[idx];
@@ -367,11 +352,10 @@ function guardarResultados() {
             juegosGanadores = juegosDcha;
             juegosPerdedores = juegosIzq;
         } else {
-            // Empate raro, puedes decidir qué hacer. De momento, no sumamos nada.
+            // Empate: de momento no sumamos nada
             return;
         }
 
-        // Actualizar sets ganados/perdidos y juegos
         ganadores.forEach(nombre => {
             clasificacion[nombre].setsGanados += 1;
             clasificacion[nombre].juegos += juegosGanadores;
@@ -381,10 +365,10 @@ function guardarResultados() {
             clasificacion[nombre].juegos += juegosPerdedores;
         });
 
-        // PUNTOS:
-        // - Ganador: 7 puntos (normal)
-        // - Perdedor: sus juegos conseguidos
-        // - Doblador: si gana → 2, si pierde → 0
+        // Puntos:
+        // Ganador normal: 7
+        // Perdedor normal: sus juegos
+        // Doblador: 2 si gana, 0 si pierde
         ganadores.forEach(nombre => {
             if (nombre === dobladorReal) {
                 clasificacion[nombre].puntos += 2;
@@ -427,7 +411,6 @@ function renderClasificacion() {
     const cont = document.getElementById("clasificacion-contenido");
     if (!cont) return;
 
-    // Convertir a array y ordenar (ejemplo: por puntos, luego sets ganados, luego juegos)
     const lista = Object.entries(clasificacion).map(([nombre, data]) => ({
         nombre,
         ...data
@@ -486,10 +469,11 @@ function renderClasificacion() {
 window.addEventListener("load", () => {
     cargarJugadoresDesdeGitHub();
 
-    // Si tienes un botón para generar partido:
     const btnGenerar = document.getElementById("btn-generar-partido");
     btnGenerar?.addEventListener("click", generarPartido);
+});
 
     // Si quieres mostrar clasificación al entrar:
     renderClasificacion();
 });
+
