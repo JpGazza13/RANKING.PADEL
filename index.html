@@ -14,4 +14,44 @@
     <button class="tab-btn" data-tab="jornada">JORNADA</button>
     <button class="tab-btn" data-tab="partidos">PARTIDOS</button>
     <button class="tab-btn" data-tab="resultados">RESULTADOS</button>
-    <button class="tab-btn" data-tab="clasificacion">
+    <button class="tab-btn" data-tab="clasificacion">CLASIFICACIÓN</button>
+    <button class="tab-btn" data-tab="doblajes">DOBLAJES</button>
+</div>
+
+<!-- JUGADORES -->
+<div id="jugadores" class="tab active">
+    <h2>Jugadores por grupo</h2>
+
+    <h3>Grupo 1</h3>
+    <textarea id="jugadores-g1" rows="6"></textarea>
+    <button onclick="guardarJugadores('g1')">Guardar G1</button>
+
+    <h3>Grupo 2</h3>
+    <textarea id="jugadores-g2" rows="6"></textarea>
+    <button onclick="guardarJugadores('g2')">Guardar G2</button>
+
+    <h3>Grupo 3</h3>
+    <textarea id="jugadores-g3" rows="6"></textarea>
+    <button onclick="guardarJugadores('g3')">Guardar G3</button>
+</div>
+
+<!-- JORNADA -->
+<div id="jornada" class="tab">
+    <h2>Seleccionar jugadores para la jornada</h2>
+
+    <label>Fecha de la jornada:</label>
+    <input type="date" id="fecha-jornada">
+
+    <h3>Grupo 1</h3>
+    <div id="jornada-g1-list"></div>
+
+    <h3>Grupo 2</h3>
+    <div id="jornada-g2-list"></div>
+
+    <h3>Grupo 3</h3>
+    <div id="jornada-g3-list"></div>
+
+    <h3>Condiciones especiales</h3>
+    <textarea id="prompt-condiciones" rows="4"></textarea>
+
+    <button onclick="generarPartidos()">
