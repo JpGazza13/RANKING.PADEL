@@ -229,9 +229,10 @@ function renderResultados() {
   cont.innerHTML = html;
 }
 
-// Cambiar resultado de un set y recalcular puntos
+// NUEVA LÓGICA DE PUNTUACIÓN INDIVIDUAL POR SET
 function cambiarResultado(idx, val12, val34) {
   const r = resultadosSets[idx];
+
   if (val12 !== null) r.juegos12 = val12;
   if (val34 !== null) r.juegos34 = val34;
 
@@ -242,17 +243,19 @@ function cambiarResultado(idx, val12, val34) {
   const gana12 = j12 > j34;
   const gana34 = j34 > j12;
 
-  function puntosPareja(jA, jB, gana, juegos) {
-    const esDobla = jA.dobla || jB.dobla;
-    if (esDobla) {
-      return gana ? 2 : 0;
-    } else {
-      return gana ? 7 : juegos;
-    }
+  function puntosJugador(ganaSet, juegosPareja, dobla) {
+    if (ganaSet) return dobla ? 2 : 7;
+    return dobla ? 0 : juegosPareja;
   }
 
-  r.pts12 = puntosPareja(r.j1, r.j2, gana12, j12);
-  r.pts34 = puntosPareja(r.j3, r.j4, gana34, j34);
+  r.pts12_j1 = puntosJugador(gana12, j12, r.j1.dobla);
+  r.pts12_j2 = puntosJugador(gana12, j12, r.j2.dobla);
+
+  r.pts34_j3 = puntosJugador(gana34, j34, r.j3.dobla);
+  r.pts34_j4 = puntosJugador(gana34, j34, r.j4.dobla);
+
+  r.pts12 = r.pts12_j1 + r.pts12_j2;
+  r.pts34 = r.pts34_j3 + r.pts34_j4;
 
   document.getElementById('pts12-' + idx).textContent = r.pts12;
   document.getElementById('pts34-' + idx).textContent = r.pts34;
@@ -279,11 +282,13 @@ function guardarResultados() {
     const gana12 = j12 > j34;
     const gana34 = j34 > j12;
 
-    clasificacion[r.j1.nombre].puntos += r.pts12;
-    clasificacion[r.j2.nombre].puntos += r.pts12;
-    clasificacion[r.j3.nombre].puntos += r.pts34;
-    clasificacion[r.j4.nombre].puntos += r.pts34;
+    // Sumar puntos INDIVIDUALES
+    clasificacion[r.j1.nombre].puntos += r.pts12_j1;
+    clasificacion[r.j2.nombre].puntos += r.pts12_j2;
+    clasificacion[r.j3.nombre].puntos += r.pts34_j3;
+    clasificacion[r.j4.nombre].puntos += r.pts34_j4;
 
+    // Sets ganados/perdidos
     if (gana12) {
       clasificacion[r.j1.nombre].setsG++;
       clasificacion[r.j2.nombre].setsG++;
@@ -296,10 +301,12 @@ function guardarResultados() {
       clasificacion[r.j2.nombre].setsP++;
     }
 
+    // PJ (1/3 por set)
     [r.j1.nombre, r.j2.nombre, r.j3.nombre, r.j4.nombre].forEach(n => {
       clasificacion[n].pj += 1/3;
     });
 
+    // Doblajes
     const fecha = document.getElementById('fecha-jornada').value || 'Jornada';
     [r.j1, r.j2, r.j3, r.j4].forEach(j => {
       if (j.dobla) {
@@ -361,5 +368,6 @@ function renderDoblajes() {
 
 // Inicializar
 cargarJugadoresDesdeTextareas();
+
 
 
