@@ -5,119 +5,69 @@
     <title>Ranking Padel</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h1>RANKING PADEL</h1>
+    <h1>RANKING PADEL</h1>
 
-<div class="tabs">
-    <button class="tab-btn active" data-tab="jugadores">JUGADORES</button>
-    <button class="tab-btn" data-tab="jornada">JORNADA</button>
-    <button class="tab-btn" data-tab="partidos">PARTIDOS</button>
-    <button class="tab-btn" data-tab="resultados">RESULTADOS</button>
-    <button class="tab-btn" data-tab="clasificacion">CLASIFICACIÓN</button>
-    <button class="tab-btn" data-tab="doblajes">DOBLAJES</button>
-</div>
+    <!-- NAV -->
+    <div class="tabs">
+        <button onclick="mostrarTab('jugadores')">Jugadores</button>
+        <button onclick="mostrarTab('jornada')">Jornada</button>
+        <button onclick="mostrarTab('partidos')">Partidos</button>
+        <button onclick="mostrarTab('resultados')">Resultados</button>
+        <button onclick="mostrarTab('clasificacion')">Clasificación</button>
+    </div>
 
-<!-- JUGADORES -->
-<div id="jugadores" class="tab active">
-    <h2>Jugadores por grupo</h2>
+    <!-- JUGADORES -->
+    <div id="jugadores" class="tab active">
+        <h2>Jugadores por grupo</h2>
 
-    <h3>Grupo 1</h3>
-    <textarea id="jugadores-g1" rows="6"></textarea>
-    <button onclick="guardarJugadores('g1')">Guardar G1</button>
+        <h3>Grupo 1</h3>
+        <textarea id="jugadores-g1" rows="6"></textarea>
+        <button onclick="guardarJugadores('g1')">Guardar G1</button>
 
-    <h3>Grupo 2</h3>
-    <textarea id="jugadores-g2" rows="6"></textarea>
-    <button onclick="guardarJugadores('g2')">Guardar G2</button>
+        <h3>Grupo 2</h3>
+        <textarea id="jugadores-g2" rows="6"></textarea>
+        <button onclick="guardarJugadores('g2')">Guardar G2</button>
 
-    <h3>Grupo 3</h3>
-    <textarea id="jugadores-g3" rows="6"></textarea>
-    <button onclick="guardarJugadores('g3')">Guardar G3</button>
-</div>
+        <h3>Grupo 3</h3>
+        <textarea id="jugadores-g3" rows="6"></textarea>
+        <button onclick="guardarJugadores('g3')">Guardar G3</button>
+    </div>
 
-<!-- JORNADA -->
-<div id="jornada" class="tab">
-    <h2>Seleccionar jugadores para la jornada</h2>
+    <!-- JORNADA -->
+    <div id="jornada" class="tab">
+        <h2>Seleccionar jugadores para la jornada</h2>
 
-    <label>Fecha de la jornada:</label>
-    <input type="date" id="fecha-jornada">
+        <label>Fecha de la jornada:</label>
+        <input type="date" id="fecha-jornada">
 
-    <h3>Grupo 1</h3>
-    <div id="jornada-g1-list"></div>
+        <h3>Selecciona jugadores del grupo</h3>
+        <div id="seleccion-jugadores"></div>
 
-    <h3>Grupo 2</h3>
-    <div id="jornada-g2-list"></div>
+        <button id="btn-generar-partido">Generar partido</button>
+    </div>
 
-    <h3>Grupo 3</h3>
-    <div id="jornada-g3-list"></div>
+    <!-- PARTIDOS -->
+    <div id="partidos" class="tab">
+        <h2>Partidos generados</h2>
+        <div id="partidos-contenido"></div>
+    </div>
 
-    <h3>Condiciones especiales</h3>
-    <textarea id="prompt-condiciones" rows="4"></textarea>
+    <!-- RESULTADOS -->
+    <div id="resultados" class="tab">
+        <h2>Resultados</h2>
+        <div id="resultados-contenido"></div>
+        <button onclick="guardarResultados()">Guardar resultados</button>
+    </div>
 
-    <button onclick="generarPartidos()">GENERAR PARTIDOS</button>
-</div>
+    <!-- CLASIFICACIÓN -->
+    <div id="clasificacion" class="tab">
+        <h2>Clasificación</h2>
+        <div id="clasificacion-contenido"></div>
+    </div>
 
-<!-- PARTIDOS -->
-<div id="partidos" class="tab">
-    <h2>Partidos generados</h2>
-    <div id="partidos-contenido"></div>
-    <button onclick="editarPartidos()">Editar partidos</button>
-    <button onclick="validarJornada()">Validar jornada</button>
-</div>
-
-<!-- RESULTADOS -->
-<div id="resultados" class="tab">
-    <h2>Resultados</h2>
-    <div id="resultados-contenido"></div>
-    <button onclick="guardarResultados()">Guardar resultados</button>
-</div>
-
-<!-- CLASIFICACIÓN -->
-<div id="clasificacion" class="tab">
-    <h2>Clasificación</h2>
-
-    <h3>Grupo 1</h3>
-    <table id="tabla-clasificacion-g1">
-        <thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>PJ</th><th>SG</th><th>SP</th></tr></thead>
-        <tbody></tbody>
-    </table>
-
-    <h3>Grupo 2</h3>
-    <table id="tabla-clasificacion-g2">
-        <thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>PJ</th><th>SG</th><th>SP</th></tr></thead>
-        <tbody></tbody>
-    </table>
-
-    <h3>Grupo 3</h3>
-    <table id="tabla-clasificacion-g3">
-        <thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>PJ</th><th>SG</th><th>SP</th></tr></thead>
-        <tbody></tbody>
-    </table>
-</div>
-
-<!-- DOBLAJES -->
-<div id="doblajes" class="tab">
-    <h2>Doblajes</h2>
-
-    <h3>Grupo 1</h3>
-    <table id="tabla-doblajes-g1">
-        <thead><tr><th>Jugador</th><th>Total</th><th>Jornadas</th></tr></thead>
-        <tbody></tbody>
-    </table>
-
-    <h3>Grupo 2</h3>
-    <table id="tabla-doblajes-g2">
-        <thead><tr><th>Jugador</th><th>Total</th><th>Jornadas</th></tr></thead>
-        <tbody></tbody>
-    </table>
-
-    <h3>Grupo 3</h3>
-    <table id="tabla-doblajes-g3">
-        <thead><tr><th>Jugador</th><th>Total</th><th>Jornadas</th></tr></thead>
-        <tbody></tbody>
-    </table>
-</div>
-
-<script src="app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

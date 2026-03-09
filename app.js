@@ -12,70 +12,57 @@ let jugadoresG1 = [];
 let jugadoresG2 = [];
 let jugadoresG3 = [];
 
-let jugadoresSeleccionados = [];          // [{nombre, juega, dobla}]
-let jugadoresQueJuegan = [];             // nombres
-let jugadoresDisponiblesParaDoblar = []; // nombres
+let jugadoresSeleccionados = [];
+let jugadoresQueJuegan = [];
+let jugadoresDisponiblesParaDoblar = [];
 
-let partidoActual = null;                // {jugA, jugB, jugC, jugD, dobladorReal}
-let clasificacion = {};                  // {nombre: {puntos, setsGanados, setsPerdidos, juegos}}
+let partidoActual = null;
+let clasificacion = {};
 
 // =========================
-// CARGA DE JUGADORES DESDE GITHUB
+// CAMBIO DE TABS
 // =========================
-async function cargarJugadoresDesdeGitHub() {
-    try {
-        const [g1, g2, g3] = await Promise.all([
-            fetch(URL_G1).then(r => r.text()),
-            fetch(URL_G2).then(r => r.text()),
-            fetch(URL_G3).then(r => r.text())
-        ]);
-
-        jugadoresG1 = g1.split("\n").map(x => x.trim()).filter(x => x);
-        jugadoresG2 = g2.split("\n").map(x => x.trim()).filter(x => x);
-        jugadoresG3 = g3.split("\n").map(x => x.trim()).filter(x => x);
-
-        // Guardar en localStorage para carga rápida
-        localStorage.setItem("jugadores_g1", JSON.stringify(jugadoresG1));
-        localStorage.setItem("jugadores_g2", JSON.stringify(jugadoresG2));
-        localStorage.setItem("jugadores_g3", JSON.stringify(jugadoresG3));
-
-        // Mostrar en pantalla (si tienes textareas g1/g2/g3)
-        const g1El = document.getElementById("g1");
-        const g2El = document.getElementById("g2");
-        const g3El = document.getElementById("g3");
-        if (g1El) g1El.value = jugadoresG1.join("\n");
-        if (g2El) g2El.value = jugadoresG2.join("\n");
-        if (g3El) g3El.value = jugadoresG3.join("\n");
-
-        console.log("Jugadores cargados desde GitHub.");
-        inicializarClasificacion();
-        renderSeleccionJugadores(); // por defecto, usamos G1
-        renderClasificacion();
-    } catch (error) {
-        console.error("Error cargando desde GitHub:", error);
-        alert("Error cargando jugadores desde GitHub.");
-    }
+function mostrarTab(id) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
 }
 
 // =========================
-// GUARDAR MANUALMENTE (EDITABLE)
+// CARGA DE JUGADORES
 // =========================
-function guardarGrupo(idTextarea, keyStorage) {
-    const contenido = document.getElementById(idTextarea).value
-        .split("\n")
-        .map(x => x.trim())
-        .filter(x => x);
+async function cargarJugadores() {
+    const [g1, g2, g3] = await Promise.all([
+        fetch(URL_G1).then(r => r.text()),
+        fetch(URL_G2).then(r => r.text()),
+        fetch(URL_G3).then(r => r.text())
+    ]);
 
-    localStorage.setItem(keyStorage, JSON.stringify(contenido));
-    alert("Grupo guardado correctamente.");
+    jugadoresG1 = g1.split("\n").map(x => x.trim()).filter(x => x);
+    jugadoresG2 = g2.split("\n").map(x => x.trim()).filter(x => x);
+    jugadoresG3 = g3.split("\n").map(x => x.trim()).filter(x => x);
+
+    document.getElementById("jugadores-g1").value = jugadoresG1.join("\n");
+    document.getElementById("jugadores-g2").value = jugadoresG2.join("\n");
+    document.getElementById("jugadores-g3").value = jugadoresG3.join("\n");
+
+    inicializarClasificacion();
+    renderSeleccionJugadores();
+    renderClasificacion();
 }
 
-document.getElementById("guardarG1")?.addEventListener("click", () => guardarGrupo("g1", "jugadores_g1"));
-document.getElementById("guardarG2")?.addEventListener("click", () => guardarGrupo("g2", "jugadores_g2"));
-document.getElementById("guardarG3")?.addEventListener("click", () => guardarGrupo("g3", "jugadores_g3"));
+function guardarJugadores(grupo) {
+    const id = "jugadores-" + grupo;
+    const lista = document.getElementById(id).value.split("\n").map(x => x.trim()).filter(x => x);
+
+    if (grupo === "g1") jugadoresG1 = lista;
+    if (grupo === "g2") jugadoresG2 = lista;
+    if (grupo === "g3") jugadoresG3 = lista;
+
+    alert("Grupo guardado.");
+}
 
 // =========================
-// CLASIFICACIÓN: INICIALIZAR
+// CLASIFICACIÓN
 // =========================
 function inicializarClasificacion() {
     const guardada = localStorage.getItem("clasificacion_padel");
@@ -84,17 +71,10 @@ function inicializarClasificacion() {
         return;
     }
 
-    const todos = [...jugadoresG1, ...jugadoresG2, ...jugadoresG3];
-    todos.forEach(nombre => {
-        if (!clasificacion[nombre]) {
-            clasificacion[nombre] = {
-                puntos: 0,
-                setsGanados: 0,
-                setsPerdidos: 0,
-                juegos: 0
-            };
-        }
+    [...jugadoresG1, ...jugadoresG2, ...jugadoresG3].forEach(nombre => {
+        clasificacion[nombre] = { puntos: 0, setsGanados: 0, setsPerdidos: 0, juegos: 0 };
     });
+
     guardarClasificacion();
 }
 
@@ -102,29 +82,50 @@ function guardarClasificacion() {
     localStorage.setItem("clasificacion_padel", JSON.stringify(clasificacion));
 }
 
-// =========================
-– SELECCIÓN DE JUGADORES (JUEGA / DOBLA)
-// =========================
+function renderClasificacion() {
+    const cont = document.getElementById("clasificacion-contenido");
+    cont.innerHTML = "";
 
-// Por simplicidad, usamos siempre G1.
-// Si luego quieres selector de grupo, lo añadimos.
-function obtenerJugadoresGrupoActual() {
-    return jugadoresG1;
+    const lista = Object.entries(clasificacion).map(([nombre, d]) => ({ nombre, ...d }));
+
+    lista.sort((a, b) =>
+        b.puntos - a.puntos ||
+        b.setsGanados - a.setsGanados ||
+        b.juegos - a.juegos
+    );
+
+    let html = `<table><thead><tr>
+        <th>Jugador</th><th>Puntos</th><th>Sets G</th><th>Sets P</th><th>Juegos</th>
+    </tr></thead><tbody>`;
+
+    lista.forEach(j => {
+        html += `<tr>
+            <td>${j.nombre}</td>
+            <td>${j.puntos}</td>
+            <td>${j.setsGanados}</td>
+            <td>${j.setsPerdidos}</td>
+            <td>${j.juegos}</td>
+        </tr>`;
+    });
+
+    html += "</tbody></table>";
+    cont.innerHTML = html;
 }
 
+// =========================
+// SELECCIÓN JUEGA / DOBLA
+// =========================
 function renderSeleccionJugadores() {
     const cont = document.getElementById("seleccion-jugadores");
-    if (!cont) return;
+    cont.innerHTML = "";
 
-    const lista = obtenerJugadoresGrupoActual();
-    jugadoresSeleccionados = lista.map(nombre => ({
+    jugadoresSeleccionados = jugadoresG1.map(nombre => ({
         nombre,
         juega: false,
         dobla: false
     }));
 
-    cont.innerHTML = "";
-    lista.forEach(nombre => {
+    jugadoresG1.forEach(nombre => {
         const fila = document.createElement("div");
         fila.className = "fila-jugador";
 
@@ -132,66 +133,44 @@ function renderSeleccionJugadores() {
         label.textContent = nombre;
         label.className = "nombre-jugador";
 
-        const btnJuega = document.createElement("button");
-        btnJuega.textContent = "JUEGA";
-        btnJuega.className = "btn-juega";
-        btnJuega.addEventListener("click", () => toggleJuega(nombre, btnJuega));
+        const btnJ = document.createElement("button");
+        btnJ.textContent = "JUEGA";
+        btnJ.className = "btn-juega";
+        btnJ.onclick = () => toggleJuega(nombre, btnJ);
 
-        const btnDobla = document.createElement("button");
-        btnDobla.textContent = "DOBLA";
-        btnDobla.className = "btn-dobla";
-        btnDobla.addEventListener("click", () => toggleDobla(nombre, btnDobla));
+        const btnD = document.createElement("button");
+        btnD.textContent = "DOBLA";
+        btnD.className = "btn-dobla";
+        btnD.onclick = () => toggleDobla(nombre, btnD);
 
         fila.appendChild(label);
-        fila.appendChild(btnJuega);
-        fila.appendChild(btnDobla);
+        fila.appendChild(btnJ);
+        fila.appendChild(btnD);
         cont.appendChild(fila);
     });
 }
 
-function toggleJuega(nombre, boton) {
-    const jug = jugadoresSeleccionados.find(j => j.nombre === nombre);
-    if (!jug) return;
-    jug.juega = !jug.juega;
-
-    if (jug.juega) {
-        boton.classList.add("activo");
-    } else {
-        boton.classList.remove("activo");
-    }
-
-    actualizarListasSeleccion();
+function toggleJuega(nombre, btn) {
+    const j = jugadoresSeleccionados.find(x => x.nombre === nombre);
+    j.juega = !j.juega;
+    btn.classList.toggle("activo");
+    actualizarListas();
 }
 
-function toggleDobla(nombre, boton) {
-    const jug = jugadoresSeleccionados.find(j => j.nombre === nombre);
-    if (!jug) return;
-    jug.dobla = !jug.dobla;
-
-    if (jug.dobla) {
-        boton.classList.add("activo");
-    } else {
-        boton.classList.remove("activo");
-    }
-
-    actualizarListasSeleccion();
+function toggleDobla(nombre, btn) {
+    const j = jugadoresSeleccionados.find(x => x.nombre === nombre);
+    j.dobla = !j.dobla;
+    btn.classList.toggle("activo");
+    actualizarListas();
 }
 
-function actualizarListasSeleccion() {
-    jugadoresQueJuegan = jugadoresSeleccionados
-        .filter(j => j.juega)
-        .map(j => j.nombre);
-
-    jugadoresDisponiblesParaDoblar = jugadoresSeleccionados
-        .filter(j => j.dobla)
-        .map(j => j.nombre);
-
-    console.log("Juegan:", jugadoresQueJuegan);
-    console.log("Disponibles para doblar:", jugadoresDisponiblesParaDoblar);
+function actualizarListas() {
+    jugadoresQueJuegan = jugadoresSeleccionados.filter(j => j.juega).map(j => j.nombre);
+    jugadoresDisponiblesParaDoblar = jugadoresSeleccionados.filter(j => j.dobla).map(j => j.nombre);
 }
 
 // =========================
-// GENERACIÓN DE PARTIDO (4 JUGADORES + DOBLADOR SI HACE FALTA)
+// GENERAR PARTIDO
 // =========================
 function generarPartido() {
     let base = [...jugadoresQueJuegan];
@@ -199,281 +178,118 @@ function generarPartido() {
     if (base.length < 4) {
         const faltan = 4 - base.length;
         const candidatos = jugadoresDisponiblesParaDoblar.filter(n => !base.includes(n));
+
         if (candidatos.length < faltan) {
-            alert("No hay suficientes jugadores (ni dobladores) para generar un partido.");
+            alert("No hay suficientes jugadores ni dobladores.");
             return;
         }
+
         base = base.concat(candidatos.slice(0, faltan));
     }
 
-    if (base.length < 4) {
-        alert("No hay suficientes jugadores para un partido.");
-        return;
-    }
+    const [A, B, C, D] = base;
 
-    const [A, B, C, D] = base.slice(0, 4);
-
-    // Doblador REAL: solo si hemos tenido que usar alguno de DOBLA
     let dobladorReal = null;
-    for (const nombre of base) {
-        if (jugadoresDisponiblesParaDoblar.includes(nombre) && !jugadoresQueJuegan.includes(nombre)) {
-            dobladorReal = nombre;
-            break;
+    base.forEach(n => {
+        if (jugadoresDisponiblesParaDoblar.includes(n) && !jugadoresQueJuegan.includes(n)) {
+            dobladorReal = n;
         }
-    }
+    });
 
     partidoActual = { jugA: A, jugB: B, jugC: C, jugD: D, dobladorReal };
-    console.log("Partido generado:", partidoActual);
+
     renderResultadosPartido();
+    mostrarTab("resultados");
 }
 
 // =========================
-// RENDERIZADO DE RESULTADOS (3 SETS: AB–CD, AC–BD, AD–BC)
+// RESULTADOS
 // =========================
 function renderResultadosPartido() {
     const cont = document.getElementById("resultados-contenido");
-    if (!cont || !partidoActual) return;
-
     const { jugA, jugB, jugC, jugD } = partidoActual;
 
-    cont.innerHTML = "";
-
-    const tabla = document.createElement("table");
-    tabla.className = "tabla-resultados";
-
-    const thead = document.createElement("thead");
-    const trh = document.createElement("tr");
-    ["Set", "Pareja Izq", "Pareja Dcha", "Juegos Izq", "Juegos Dcha"].forEach(txt => {
-        const th = document.createElement("th");
-        th.textContent = txt;
-        trh.appendChild(th);
-    });
-    thead.appendChild(trh);
-    tabla.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-
-    tbody.appendChild(crearFilaSet(1, `${jugA} + ${jugB}`, `${jugC} + ${jugD}`, "set1_izq", "set1_dcha"));
-    tbody.appendChild(crearFilaSet(2, `${jugA} + ${jugC}`, `${jugB} + ${jugD}`, "set2_izq", "set2_dcha"));
-    tbody.appendChild(crearFilaSet(3, `${jugA} + ${jugD}`, `${jugB} + ${jugC}`, "set3_izq", "set3_dcha"));
-
-    tabla.appendChild(tbody);
-    cont.appendChild(tabla);
+    cont.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Set</th><th>Pareja Izq</th><th>Pareja Dcha</th><th>Izq</th><th>Dcha</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filaSet(1, `${jugA} + ${jugB}`, `${jugC} + ${jugD}`, "s1i", "s1d")}
+                ${filaSet(2, `${jugA} + ${jugC}`, `${jugB} + ${jugD}`, "s2i", "s2d")}
+                ${filaSet(3, `${jugA} + ${jugD}`, `${jugB} + ${jugC}`, "s3i", "s3d")}
+            </tbody>
+        </table>
+    `;
 }
 
-function crearFilaSet(numSet, parejaIzq, parejaDcha, idIzq, idDcha) {
-    const tr = document.createElement("tr");
-
-    const tdSet = document.createElement("td");
-    tdSet.textContent = `${numSet}º`;
-    tr.appendChild(tdSet);
-
-    const tdIzq = document.createElement("td");
-    tdIzq.textContent = parejaIzq;
-    tr.appendChild(tdIzq);
-
-    const tdDcha = document.createElement("td");
-    tdDcha.textContent = parejaDcha;
-    tr.appendChild(tdDcha);
-
-    const tdJIzq = document.createElement("td");
-    const inputIzq = document.createElement("input");
-    inputIzq.type = "number";
-    inputIzq.min = "0";
-    inputIzq.id = idIzq;
-    tdJIzq.appendChild(inputIzq);
-    tr.appendChild(tdJIzq);
-
-    const tdJDcha = document.createElement("td");
-    const inputDcha = document.createElement("input");
-    inputDcha.type = "number";
-    inputDcha.min = "0";
-    inputDcha.id = idDcha;
-    tdJDcha.appendChild(inputDcha);
-    tr.appendChild(tdJDcha);
-
-    return tr;
+function filaSet(n, izq, dcha, idI, idD) {
+    return `
+        <tr>
+            <td>${n}</td>
+            <td>${izq}</td>
+            <td>${dcha}</td>
+            <td><input id="${idI}" type="number" min="0"></td>
+            <td><input id="${idD}" type="number" min="0"></td>
+        </tr>
+    `;
 }
 
-// =========================
-// GUARDAR RESULTADOS: SISTEMA DE PUNTOS
-// =========================
 function guardarResultados() {
-    if (!partidoActual) {
-        alert("No hay partido generado.");
-        return;
-    }
-
     const { jugA, jugB, jugC, jugD, dobladorReal } = partidoActual;
 
     const sets = [
-        leerSet("set1_izq", "set1_dcha"),
-        leerSet("set2_izq", "set2_dcha"),
-        leerSet("set3_izq", "set3_dcha")
+        leer("s1i", "s1d"),
+        leer("s2i", "s2d"),
+        leer("s3i", "s3d")
     ];
 
-    if (sets.some(s => s == null)) {
-        alert("Faltan resultados en algún set.");
-        return;
-    }
-
-    const setsParejas = [
+    const parejas = [
         { izq: [jugA, jugB], dcha: [jugC, jugD] },
         { izq: [jugA, jugC], dcha: [jugB, jugD] },
         { izq: [jugA, jugD], dcha: [jugB, jugC] }
     ];
 
-    [jugA, jugB, jugC, jugD].forEach(nombre => {
-        if (!clasificacion[nombre]) {
-            clasificacion[nombre] = {
-                puntos: 0,
-                setsGanados: 0,
-                setsPerdidos: 0,
-                juegos: 0
-            };
-        }
-    });
-
-    sets.forEach((set, idx) => {
-        const { juegosIzq, juegosDcha } = set;
-        const { izq, dcha } = setsParejas[idx];
+    sets.forEach((s, i) => {
+        const { izq, dcha } = parejas[i];
 
         let ganadores, perdedores;
-        let juegosGanadores, juegosPerdedores;
-
-        if (juegosIzq > juegosDcha) {
+        if (s.i > s.d) {
             ganadores = izq;
             perdedores = dcha;
-            juegosGanadores = juegosIzq;
-            juegosPerdedores = juegosDcha;
-        } else if (juegosDcha > juegosIzq) {
+        } else {
             ganadores = dcha;
             perdedores = izq;
-            juegosGanadores = juegosDcha;
-            juegosPerdedores = juegosIzq;
-        } else {
-            // Empate: de momento no sumamos nada
-            return;
         }
 
-        ganadores.forEach(nombre => {
-            clasificacion[nombre].setsGanados += 1;
-            clasificacion[nombre].juegos += juegosGanadores;
-        });
-        perdedores.forEach(nombre => {
-            clasificacion[nombre].setsPerdidos += 1;
-            clasificacion[nombre].juegos += juegosPerdedores;
+        ganadores.forEach(n => {
+            clasificacion[n].setsGanados++;
+            clasificacion[n].juegos += Math.max(s.i, s.d);
+            clasificacion[n].puntos += (n === dobladorReal ? 2 : 7);
         });
 
-        // Puntos:
-        // Ganador normal: 7
-        // Perdedor normal: sus juegos
-        // Doblador: 2 si gana, 0 si pierde
-        ganadores.forEach(nombre => {
-            if (nombre === dobladorReal) {
-                clasificacion[nombre].puntos += 2;
-            } else {
-                clasificacion[nombre].puntos += 7;
-            }
-        });
-
-        perdedores.forEach(nombre => {
-            if (nombre === dobladorReal) {
-                clasificacion[nombre].puntos += 0;
-            } else {
-                clasificacion[nombre].puntos += juegosPerdedores;
-            }
+        perdedores.forEach(n => {
+            clasificacion[n].setsPerdidos++;
+            clasificacion[n].juegos += Math.min(s.i, s.d);
+            clasificacion[n].puntos += (n === dobladorReal ? 0 : Math.min(s.i, s.d));
         });
     });
 
     guardarClasificacion();
-    alert("Resultados guardados y clasificación actualizada.");
     renderClasificacion();
+    alert("Resultados guardados.");
 }
 
-function leerSet(idIzq, idDcha) {
-    const izq = document.getElementById(idIzq);
-    const dcha = document.getElementById(idDcha);
-    if (!izq || !dcha) return null;
-
-    const juegosIzq = parseInt(izq.value, 10);
-    const juegosDcha = parseInt(dcha.value, 10);
-
-    if (isNaN(juegosIzq) || isNaN(juegosDcha)) return null;
-
-    return { juegosIzq, juegosDcha };
-}
-
-// =========================
-// RENDER CLASIFICACIÓN
-// =========================
-function renderClasificacion() {
-    const cont = document.getElementById("clasificacion-contenido");
-    if (!cont) return;
-
-    const lista = Object.entries(clasificacion).map(([nombre, data]) => ({
-        nombre,
-        ...data
-    }));
-
-    lista.sort((a, b) => {
-        if (b.puntos !== a.puntos) return b.puntos - a.puntos;
-        if (b.setsGanados !== a.setsGanados) return b.setsGanados - a.setsGanados;
-        return b.juegos - a.juegos;
-    });
-
-    cont.innerHTML = "";
-
-    const tabla = document.createElement("table");
-    tabla.className = "tabla-clasificacion";
-
-    const thead = document.createElement("thead");
-    const trh = document.createElement("tr");
-    ["Jugador", "Puntos", "Sets Ganados", "Sets Perdidos", "Juegos"].forEach(txt => {
-        const th = document.createElement("th");
-        th.textContent = txt;
-        trh.appendChild(th);
-    });
-    thead.appendChild(trh);
-    tabla.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-    lista.forEach(j => {
-        const tr = document.createElement("tr");
-        const cNombre = document.createElement("td");
-        cNombre.textContent = j.nombre;
-        const cPuntos = document.createElement("td");
-        cPuntos.textContent = j.puntos;
-        const cSG = document.createElement("td");
-        cSG.textContent = j.setsGanados;
-        const cSP = document.createElement("td");
-        cSP.textContent = j.setsPerdidos;
-        const cJ = document.createElement("td");
-        cJ.textContent = j.juegos;
-
-        tr.appendChild(cNombre);
-        tr.appendChild(cPuntos);
-        tr.appendChild(cSG);
-        tr.appendChild(cSP);
-        tr.appendChild(cJ);
-        tbody.appendChild(tr);
-    });
-
-    tabla.appendChild(tbody);
-    cont.appendChild(tabla);
+function leer(i, d) {
+    return {
+        i: parseInt(document.getElementById(i).value),
+        d: parseInt(document.getElementById(d).value)
+    };
 }
 
 // =========================
 // INICIO
 // =========================
-window.addEventListener("load", () => {
-    cargarJugadoresDesdeGitHub();
-
-    const btnGenerar = document.getElementById("btn-generar-partido");
-    btnGenerar?.addEventListener("click", generarPartido);
-});
-
-    // Si quieres mostrar clasificación al entrar:
-    renderClasificacion();
-});
-
+window.onload = cargarJugadores;
