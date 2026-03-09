@@ -54,4 +54,70 @@
     <h3>Condiciones especiales</h3>
     <textarea id="prompt-condiciones" rows="4"></textarea>
 
-    <button onclick="generarPartidos()">
+    <button onclick="generarPartidos()">GENERAR PARTIDOS</button>
+</div>
+
+<!-- PARTIDOS -->
+<div id="partidos" class="tab">
+    <h2>Partidos generados</h2>
+    <div id="partidos-contenido"></div>
+    <button onclick="editarPartidos()">Editar partidos</button>
+    <button onclick="validarJornada()">Validar jornada</button>
+</div>
+
+<!-- RESULTADOS -->
+<div id="resultados" class="tab">
+    <h2>Resultados</h2>
+    <div id="resultados-contenido"></div>
+    <button onclick="guardarResultados()">Guardar resultados</button>
+</div>
+
+<!-- CLASIFICACIÓN -->
+<div id="clasificacion" class="tab">
+    <h2>Clasificación</h2>
+
+    <h3>Grupo 1</h3>
+    <table id="tabla-clasificacion-g1">
+        <thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>PJ</th><th>SG</th><th>SP</th></tr></thead>
+        <tbody></tbody>
+    </table>
+
+    <h3>Grupo 2</h3>
+    <table id="tabla-clasificacion-g2">
+        <thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>PJ</th><th>SG</th><th>SP</th></tr></thead>
+        <tbody></tbody>
+    </table>
+
+    <h3>Grupo 3</h3>
+    <table id="tabla-clasificacion-g3">
+        <thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>PJ</th><th>SG</th><th>SP</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- DOBLAJES -->
+<div id="doblajes" class="tab">
+    <h2>Doblajes</h2>
+
+    <h3>Grupo 1</h3>
+    <table id="tabla-doblajes-g1">
+        <thead><tr><th>Jugador</th><th>Total</th><th>Jornadas</th></tr></thead>
+        <tbody></tbody>
+    </table>
+
+    <h3>Grupo 2</h3>
+    <table id="tabla-doblajes-g2">
+        <thead><tr><th>Jugador</th><th>Total</th><th>Jornadas</th></tr></thead>
+        <tbody></tbody>
+    </table>
+
+    <h3>Grupo 3</h3>
+    <table id="tabla-doblajes-g3">
+        <thead><tr><th>Jugador</th><th>Total</th><th>Jornadas</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
