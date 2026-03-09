@@ -22,24 +22,27 @@ let resultadosSets = [];
 let clasificacion = {};
 let doblajes = {};
 
-// Cargar jugadores iniciales desde textareas
-function cargarJugadoresDesdeTextareas() {
+// Cargar jugadores guardados en localStorage
+function cargarJugadoresGuardados() {
   ['g1','g2','g3'].forEach(g => {
-    const ta = document.getElementById('jugadores-' + g);
-    jugadores[g] = ta.value
-      .split('\n')
-      .map(x => x.trim())
-      .filter(x => x.length > 0);
+    const saved = localStorage.getItem('jugadores_' + g);
+    if (saved) {
+      jugadores[g] = JSON.parse(saved);
+      document.getElementById('jugadores-' + g).value = jugadores[g].join('\n');
+    }
   });
-  renderSeleccionJornada();
 }
 
+// Guardar jugadores DEFINITIVAMENTE
 function guardarJugadores(grupo) {
   const ta = document.getElementById('jugadores-' + grupo);
   jugadores[grupo] = ta.value
     .split('\n')
     .map(x => x.trim())
     .filter(x => x.length > 0);
+
+  // Guardar en localStorage
+  localStorage.setItem('jugadores_' + grupo, JSON.stringify(jugadores[grupo]));
 
   renderSeleccionJornada();
   alert('Jugadores ' + grupo.toUpperCase() + ' guardados.');
@@ -131,60 +134,63 @@ function editarPartidos() {
   alert('En una versión futura podrás editar los partidos manualmente.');
 }
 
-// Validar jornada → preparar RESULTADOS
+// Validar jornada → preparar RESULTADOS con sets correctos
 function validarJornada() {
   if (partidosGenerados.length === 0) {
     alert('No hay partidos generados.');
     return;
   }
   resultadosSets = [];
+
   partidosGenerados.forEach((p, idx) => {
+
     // SET 1 — AB vs CD
-resultadosSets.push({
-  partidoIndex: idx,
-  set: 1,
-  grupo: p.grupo,
-  j1: p.jugadores[0], // A
-  j2: p.jugadores[1], // B
-  j3: p.jugadores[2], // C
-  j4: p.jugadores[3], // D
-  juegos12: '',
-  juegos34: '',
-  pts12: 0,
-  pts34: 0
-});
+    resultadosSets.push({
+      partidoIndex: idx,
+      set: 1,
+      grupo: p.grupo,
+      j1: p.jugadores[0],
+      j2: p.jugadores[1],
+      j3: p.jugadores[2],
+      j4: p.jugadores[3],
+      juegos12: '',
+      juegos34: '',
+      pts12: 0,
+      pts34: 0
+    });
 
-// SET 2 — AC vs BD
-resultadosSets.push({
-  partidoIndex: idx,
-  set: 2,
-  grupo: p.grupo,
-  j1: p.jugadores[0], // A
-  j2: p.jugadores[2], // C
-  j3: p.jugadores[1], // B
-  j4: p.jugadores[3], // D
-  juegos12: '',
-  juegos34: '',
-  pts12: 0,
-  pts34: 0
-});
+    // SET 2 — AC vs BD
+    resultadosSets.push({
+      partidoIndex: idx,
+      set: 2,
+      grupo: p.grupo,
+      j1: p.jugadores[0],
+      j2: p.jugadores[2],
+      j3: p.jugadores[1],
+      j4: p.jugadores[3],
+      juegos12: '',
+      juegos34: '',
+      pts12: 0,
+      pts34: 0
+    });
 
-// SET 3 — AD vs CB
-resultadosSets.push({
-  partidoIndex: idx,
-  set: 3,
-  grupo: p.grupo,
-  j1: p.jugadores[0], // A
-  j2: p.jugadores[3], // D
-  j3: p.jugadores[2], // C
-  j4: p.jugadores[1], // B
-  juegos12: '',
-  juegos34: '',
-  pts12: 0,
-  pts34: 0
-});
+    // SET 3 — AD vs CB
+    resultadosSets.push({
+      partidoIndex: idx,
+      set: 3,
+      grupo: p.grupo,
+      j1: p.jugadores[0],
+      j2: p.jugadores[3],
+      j3: p.jugadores[2],
+      j4: p.jugadores[1],
+      juegos12: '',
+      juegos34: '',
+      pts12: 0,
+      pts34: 0
+    });
 
   });
+
   renderResultados();
   alert('Jornada validada. Ahora puedes meter resultados.');
 }
@@ -397,8 +403,5 @@ function renderDoblajes() {
 }
 
 // Inicializar
-cargarJugadoresDesdeTextareas();
-
-
-
-
+cargarJugadoresGuardados();
+renderSeleccionJornada();
