@@ -308,3 +308,8 @@ function leer(i, d) {
 // INICIO
 // =========================
 window.onload = cargarJugadores;
+
+// ACTIVAR BOTÓN DE GENERAR PARTIDO
+document.getElementById("btn-generar-partido").onclick = generarPartido;
+
+
