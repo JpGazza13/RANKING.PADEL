@@ -18,6 +18,7 @@ let jugadoresDisponiblesParaDoblar = [];
 
 let partidoActual = null;
 let clasificacion = {};
+let historialDoblajes = {}; // { jugador: { grupo, fechas: [] } }
 
 // =========================
 // CAMBIO DE TABS
@@ -25,6 +26,8 @@ let clasificacion = {};
 function mostrarTab(id) {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.getElementById(id).classList.add("active");
+
+    if (id === "doblajes") renderDoblajes();
 }
 
 // =========================
@@ -46,6 +49,7 @@ async function cargarJugadores() {
     document.getElementById("jugadores-g3").value = jugadoresG3.join("\n");
 
     inicializarClasificacion();
+    inicializarDoblajes();
     renderSeleccionJugadores();
     renderClasificacion();
 }
@@ -106,6 +110,84 @@ function renderClasificacion() {
             <td>${j.setsPerdidos}</td>
             <td>${j.juegos}</td>
         </tr>`;
+    });
+
+    html += "</tbody></table>";
+    cont.innerHTML = html;
+}
+
+// =========================
+// DOBLAJES
+// =========================
+function inicializarDoblajes() {
+    const guardado = localStorage.getItem("doblajes_padel");
+    if (guardado) {
+        historialDoblajes = JSON.parse(guardado);
+        return;
+    }
+
+    historialDoblajes = {};
+    guardarDoblajes();
+}
+
+function guardarDoblajes() {
+    localStorage.setItem("doblajes_padel", JSON.stringify(historialDoblajes));
+}
+
+function registrarDoblaje(jugador, fecha) {
+    const grupo = jugadoresG1.includes(jugador) ? "G1" :
+                  jugadoresG2.includes(jugador) ? "G2" : "G3";
+
+    if (!historialDoblajes[jugador]) {
+        historialDoblajes[jugador] = { grupo, fechas: [] };
+    }
+
+    historialDoblajes[jugador].fechas.push(formatoFechaCorto(fecha));
+    guardarDoblajes();
+}
+
+function formatoFechaCorto(fechaISO) {
+    const f = new Date(fechaISO);
+    const dia = f.getDate();
+    const mes = ["Ene","Feb","Marz","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][f.getMonth()];
+    return `D${dia} ${mes}`;
+}
+
+function renderDoblajes() {
+    const cont = document.getElementById("doblajes-contenido");
+    cont.innerHTML = "";
+
+    let lista = Object.entries(historialDoblajes).map(([jugador, data]) => ({
+        jugador,
+        grupo: data.grupo,
+        fechas: data.fechas,
+        total: data.fechas.length
+    }));
+
+    lista.sort((a, b) =>
+        a.grupo.localeCompare(b.grupo) ||
+        b.total - a.total
+    );
+
+    let html = `<table>
+        <thead>
+            <tr>
+                <th>Grupo</th>
+                <th>Jugador</th>
+                <th>Nº Doblajes</th>
+                <th>Fechas</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    lista.forEach(r => {
+        html += `
+            <tr>
+                <td>${r.grupo}</td>
+                <td>${r.jugador}</td>
+                <td>${r.total}</td>
+                <td>${r.fechas.join(", ")}</td>
+            </tr>`;
     });
 
     html += "</tbody></table>";
@@ -213,8 +295,23 @@ function generarPartido() {
 
     partidoActual = { jugA: A, jugB: B, jugC: C, jugD: D, dobladorReal };
 
+    renderPartidoEnPartidos();
     renderResultadosPartido();
-    mostrarTab("resultados");
+    mostrarTab("partidos");
+}
+
+function renderPartidoEnPartidos() {
+    const cont = document.getElementById("partidos-contenido");
+    if (!cont || !partidoActual) return;
+
+    const { jugA, jugB, jugC, jugD, dobladorReal } = partidoActual;
+
+    cont.innerHTML = `
+        <h3>Partido generado</h3>
+        <p><strong>Parejas:</strong></p>
+        <p>${jugA} + ${jugB} vs ${jugC} + ${jugD}</p>
+        <p><strong>Doblador real:</strong> ${dobladorReal ? dobladorReal : "Ninguno"}</p>
+    `;
 }
 
 // =========================
@@ -254,6 +351,7 @@ function filaSet(n, izq, dcha, idI, idD) {
 
 function guardarResultados() {
     const { jugA, jugB, jugC, jugD, dobladorReal } = partidoActual;
+    const fecha = document.getElementById("fecha-jornada").value;
 
     const sets = [
         leer("s1i", "s1d"),
@@ -292,7 +390,10 @@ function guardarResultados() {
         });
     });
 
+    if (dobladorReal) registrarDoblaje(dobladorReal, fecha);
+
     guardarClasificacion();
+    guardarDoblajes();
     renderClasificacion();
     alert("Resultados guardados.");
 }
@@ -307,9 +408,5 @@ function leer(i, d) {
 // =========================
 // INICIO
 // =========================
-window.onload = cargarJugadores;
-
-// ACTIVAR BOTÓN DE GENERAR PARTIDO
 document.getElementById("btn-generar-partido").onclick = generarPartido;
-
-
+window.onload = cargarJugadores;

@@ -64,9 +64,16 @@ button.btn-dobla {
     cursor: pointer;
 }
 
-button.activo {
+/* JUEGA → verde */
+button.btn-juega.activo {
     background: #4CAF50;
     color: white;
+}
+
+/* DOBLA → amarillo */
+button.btn-dobla.activo {
+    background: #f1c40f;
+    color: black;
 }
 
 /* Tablas */
