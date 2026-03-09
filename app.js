@@ -119,36 +119,56 @@ function renderSeleccionJugadores() {
     const cont = document.getElementById("seleccion-jugadores");
     cont.innerHTML = "";
 
-    jugadoresSeleccionados = jugadoresG1.map(nombre => ({
-        nombre,
-        juega: false,
-        dobla: false
-    }));
+    // Grupos en orden exacto
+    const grupos = [
+        { nombre: "GRUPO 1", color: "g1", lista: jugadoresG1 },
+        { nombre: "GRUPO 2", color: "g2", lista: jugadoresG2 },
+        { nombre: "GRUPO 3", color: "g3", lista: jugadoresG3 }
+    ];
 
-    jugadoresG1.forEach(nombre => {
-        const fila = document.createElement("div");
-        fila.className = "fila-jugador";
+    jugadoresSeleccionados = [];
 
-        const label = document.createElement("span");
-        label.textContent = nombre;
-        label.className = "nombre-jugador";
+    grupos.forEach(grupo => {
 
-        const btnJ = document.createElement("button");
-        btnJ.textContent = "JUEGA";
-        btnJ.className = "btn-juega";
-        btnJ.onclick = () => toggleJuega(nombre, btnJ);
+        // SEPARADOR VISUAL DEL GRUPO
+        const sep = document.createElement("div");
+        sep.className = "separador-grupo " + grupo.color;
+        sep.textContent = grupo.nombre;
+        cont.appendChild(sep);
 
-        const btnD = document.createElement("button");
-        btnD.textContent = "DOBLA";
-        btnD.className = "btn-dobla";
-        btnD.onclick = () => toggleDobla(nombre, btnD);
+        // JUGADORES DEL GRUPO
+        grupo.lista.forEach(nombre => {
+            jugadoresSeleccionados.push({
+                nombre,
+                juega: false,
+                dobla: false
+            });
 
-        fila.appendChild(label);
-        fila.appendChild(btnJ);
-        fila.appendChild(btnD);
-        cont.appendChild(fila);
+            const fila = document.createElement("div");
+            fila.className = "fila-jugador";
+
+            const label = document.createElement("span");
+            label.textContent = nombre;
+            label.className = "nombre-jugador";
+
+            const btnJ = document.createElement("button");
+            btnJ.textContent = "JUEGA";
+            btnJ.className = "btn-juega";
+            btnJ.onclick = () => toggleJuega(nombre, btnJ);
+
+            const btnD = document.createElement("button");
+            btnD.textContent = "DOBLA";
+            btnD.className = "btn-dobla";
+            btnD.onclick = () => toggleDobla(nombre, btnD);
+
+            fila.appendChild(label);
+            fila.appendChild(btnJ);
+            fila.appendChild(btnD);
+            cont.appendChild(fila);
+        });
     });
 }
+
 
 function toggleJuega(nombre, btn) {
     const j = jugadoresSeleccionados.find(x => x.nombre === nombre);
@@ -293,3 +313,4 @@ function leer(i, d) {
 // INICIO
 // =========================
 window.onload = cargarJugadores;
+
