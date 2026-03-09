@@ -119,7 +119,6 @@ function renderSeleccionJugadores() {
     const cont = document.getElementById("seleccion-jugadores");
     cont.innerHTML = "";
 
-    // Grupos en orden exacto
     const grupos = [
         { nombre: "GRUPO 1", color: "g1", lista: jugadoresG1 },
         { nombre: "GRUPO 2", color: "g2", lista: jugadoresG2 },
@@ -129,14 +128,11 @@ function renderSeleccionJugadores() {
     jugadoresSeleccionados = [];
 
     grupos.forEach(grupo => {
-
-        // SEPARADOR VISUAL DEL GRUPO
         const sep = document.createElement("div");
         sep.className = "separador-grupo " + grupo.color;
         sep.textContent = grupo.nombre;
         cont.appendChild(sep);
 
-        // JUGADORES DEL GRUPO
         grupo.lista.forEach(nombre => {
             jugadoresSeleccionados.push({
                 nombre,
@@ -168,7 +164,6 @@ function renderSeleccionJugadores() {
         });
     });
 }
-
 
 function toggleJuega(nombre, btn) {
     const j = jugadoresSeleccionados.find(x => x.nombre === nombre);
@@ -313,4 +308,3 @@ function leer(i, d) {
 // INICIO
 // =========================
 window.onload = cargarJugadores;
-

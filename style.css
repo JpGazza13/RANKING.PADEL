@@ -20,18 +20,41 @@ h1 {
     display: block;
 }
 
-/* Selección de jugadores */
+/* SEPARADORES DE GRUPO */
+.separador-grupo {
+    font-weight: bold;
+    padding: 8px;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    color: white;
+}
+
+.separador-grupo.g1 {
+    background-color: #d9534f; /* rojo */
+}
+
+.separador-grupo.g2 {
+    background-color: #5cb85c; /* verde */
+}
+
+.separador-grupo.g3 {
+    background-color: #0275d8; /* azul */
+}
+
+/* Fila de jugador */
 .fila-jugador {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .nombre-jugador {
-    width: 150px;
+    width: 180px;
     font-weight: bold;
 }
 
+/* Botones */
 button.btn-juega,
 button.btn-dobla {
     margin-right: 10px;
