@@ -139,21 +139,51 @@ function validarJornada() {
   }
   resultadosSets = [];
   partidosGenerados.forEach((p, idx) => {
-    for (let s=1; s<=3; s++) {
-      resultadosSets.push({
-        partidoIndex: idx,
-        set: s,
-        grupo: p.grupo,
-        j1: p.jugadores[0],
-        j2: p.jugadores[1],
-        j3: p.jugadores[2],
-        j4: p.jugadores[3],
-        juegos12: '',
-        juegos34: '',
-        pts12: 0,
-        pts34: 0
-      });
-    }
+    // SET 1 — AB vs CD
+resultadosSets.push({
+  partidoIndex: idx,
+  set: 1,
+  grupo: p.grupo,
+  j1: p.jugadores[0], // A
+  j2: p.jugadores[1], // B
+  j3: p.jugadores[2], // C
+  j4: p.jugadores[3], // D
+  juegos12: '',
+  juegos34: '',
+  pts12: 0,
+  pts34: 0
+});
+
+// SET 2 — AC vs BD
+resultadosSets.push({
+  partidoIndex: idx,
+  set: 2,
+  grupo: p.grupo,
+  j1: p.jugadores[0], // A
+  j2: p.jugadores[2], // C
+  j3: p.jugadores[1], // B
+  j4: p.jugadores[3], // D
+  juegos12: '',
+  juegos34: '',
+  pts12: 0,
+  pts34: 0
+});
+
+// SET 3 — AD vs CB
+resultadosSets.push({
+  partidoIndex: idx,
+  set: 3,
+  grupo: p.grupo,
+  j1: p.jugadores[0], // A
+  j2: p.jugadores[3], // D
+  j3: p.jugadores[2], // C
+  j4: p.jugadores[1], // B
+  juegos12: '',
+  juegos34: '',
+  pts12: 0,
+  pts34: 0
+});
+
   });
   renderResultados();
   alert('Jornada validada. Ahora puedes meter resultados.');
@@ -368,6 +398,7 @@ function renderDoblajes() {
 
 // Inicializar
 cargarJugadoresDesdeTextareas();
+
 
 
 
