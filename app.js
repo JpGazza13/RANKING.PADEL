@@ -6,7 +6,7 @@ const URL_G2 = "https://raw.githubusercontent.com/jpgazza13/RANKING.PADEL/main/d
 const URL_G3 = "https://raw.githubusercontent.com/jpgazza13/RANKING.PADEL/main/data/g3.txt";
 
 // =========================
-// ESTADO GLOBAL
+/* ESTADO GLOBAL */
 // =========================
 let jugadoresG1 = [];
 let jugadoresG2 = [];
@@ -134,7 +134,7 @@ function guardarDoblajes() {
     localStorage.setItem("doblajes_padel", JSON.stringify(historialDoblajes));
 }
 
-function registrarDoblaje(jugador, fecha) {
+function registrarDoblaje(jugador, fechaISO) {
     const grupo = jugadoresG1.includes(jugador) ? "G1" :
                   jugadoresG2.includes(jugador) ? "G2" : "G3";
 
@@ -142,7 +142,7 @@ function registrarDoblaje(jugador, fecha) {
         historialDoblajes[jugador] = { grupo, fechas: [] };
     }
 
-    historialDoblajes[jugador].fechas.push(formatoFechaCorto(fecha));
+    historialDoblajes[jugador].fechas.push(formatoFechaCorto(fechaISO));
     guardarDoblajes();
 }
 
@@ -270,6 +270,12 @@ function actualizarListas() {
 // GENERAR PARTIDO
 // =========================
 function generarPartido() {
+    const fecha = document.getElementById("fecha-jornada").value;
+    if (!fecha) {
+        alert("Selecciona una fecha de jornada antes de generar el partido.");
+        return;
+    }
+
     let base = [...jugadoresQueJuegan];
 
     if (base.length < 4) {
@@ -293,7 +299,7 @@ function generarPartido() {
         }
     });
 
-    partidoActual = { jugA: A, jugB: B, jugC: C, jugD: D, dobladorReal };
+    partidoActual = { jugA: A, jugB: B, jugC: C, jugD: D, dobladorReal, fecha };
 
     renderPartidoEnPartidos();
     renderResultadosPartido();
@@ -304,13 +310,15 @@ function renderPartidoEnPartidos() {
     const cont = document.getElementById("partidos-contenido");
     if (!cont || !partidoActual) return;
 
-    const { jugA, jugB, jugC, jugD, dobladorReal } = partidoActual;
+    const { jugA, jugB, jugC, jugD, dobladorReal, fecha } = partidoActual;
 
     cont.innerHTML = `
         <h3>Partido generado</h3>
+        <p><strong>Fecha:</strong> ${fecha || "-"}</p>
         <p><strong>Parejas:</strong></p>
         <p>${jugA} + ${jugB} vs ${jugC} + ${jugD}</p>
         <p><strong>Doblador real:</strong> ${dobladorReal ? dobladorReal : "Ninguno"}</p>
+        <button onclick="mostrarTab('resultados')">Editar resultados</button>
     `;
 }
 
@@ -319,9 +327,15 @@ function renderPartidoEnPartidos() {
 // =========================
 function renderResultadosPartido() {
     const cont = document.getElementById("resultados-contenido");
-    const { jugA, jugB, jugC, jugD } = partidoActual;
+    if (!partidoActual) {
+        cont.innerHTML = "<p>No hay partido generado.</p>";
+        return;
+    }
+
+    const { jugA, jugB, jugC, jugD, fecha } = partidoActual;
 
     cont.innerHTML = `
+        <p><strong>Fecha:</strong> ${fecha || "-"}</p>
         <table>
             <thead>
                 <tr>
@@ -350,8 +364,12 @@ function filaSet(n, izq, dcha, idI, idD) {
 }
 
 function guardarResultados() {
-    const { jugA, jugB, jugC, jugD, dobladorReal } = partidoActual;
-    const fecha = document.getElementById("fecha-jornada").value;
+    if (!partidoActual) {
+        alert("No hay partido para guardar.");
+        return;
+    }
+
+    const { jugA, jugB, jugC, jugD, dobladorReal, fecha } = partidoActual;
 
     const sets = [
         leer("s1i", "s1d"),
@@ -390,7 +408,7 @@ function guardarResultados() {
         });
     });
 
-    if (dobladorReal) registrarDoblaje(dobladorReal, fecha);
+    if (dobladorReal && fecha) registrarDoblaje(dobladorReal, fecha);
 
     guardarClasificacion();
     guardarDoblajes();
@@ -400,8 +418,8 @@ function guardarResultados() {
 
 function leer(i, d) {
     return {
-        i: parseInt(document.getElementById(i).value),
-        d: parseInt(document.getElementById(d).value)
+        i: parseInt(document.getElementById(i).value) || 0,
+        d: parseInt(document.getElementById(d).value) || 0
     };
 }
 
