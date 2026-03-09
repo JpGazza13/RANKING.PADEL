@@ -493,4 +493,3 @@ window.addEventListener("load", () => {
     // Si quieres mostrar clasificación al entrar:
     renderClasificacion();
 });
-
